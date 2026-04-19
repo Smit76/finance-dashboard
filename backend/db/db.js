@@ -12,9 +12,21 @@ db.serialize(() => {
       amount REAL,
       category TEXT,
       date TEXT,
-      description TEXT
+      description TEXT,
+      account_id INTEGER,
+      FOREIGN KEY(account_id) REFERENCES accounts(id)
     )
   `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS accounts (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      type TEXT NOT NULL,
+      balance REAL DEFAULT 0
+    )
+  `);
+
 });
 
 module.exports = db;
