@@ -4,6 +4,8 @@ import "./App.css";
 function App() {
   const [summary, setSummary] = useState({ income: 0, expenses: 0, balance: 0 });
   const [transactions, setTransactions] = useState([]);
+  const [accounts, setAccounts] = useState([]);
+  const [networth, setNetworth] = useState(0);
 
   // form state
   const [form, setForm] = useState({
@@ -11,7 +13,8 @@ function App() {
     amount: "",
     category: "",
     date: "",
-    description: ""
+    description: "",
+    account_id: ""
   });
 
   const fetchData = () => {
@@ -22,6 +25,14 @@ function App() {
     fetch("http://localhost:5050/transactions")
       .then(res => res.json())
       .then(data => setTransactions(data));
+
+    fetch("http://localhost:5050/accounts")
+      .then(res => res.json())
+      .then(data => setAccounts(data));
+    
+    fetch("http://localhost:5050/networth")
+      .then(res => res.json())
+      .then(data => setNetworth(data.netWorth));
   };
 
   useEffect(() => {
@@ -42,7 +53,8 @@ function App() {
       },
       body: JSON.stringify({
         ...form,
-        amount: Number(form.amount)
+        amount: Number(form.amount),
+        account_id: Number(form.account_id)
       })
     });
 
@@ -76,6 +88,24 @@ function App() {
         <div className="card">Balance: ${summary.balance}</div>
       </div>
 
+      {/* Net Worth */}
+      <div className="card" style={{ marginTop: "20px" }}>
+        <h2>Net Worth</h2>
+        <h1>${networth}</h1>
+      </div>
+
+      {/* Accounts */}
+      <h2>Accounts</h2>
+      <div className="cards">
+        {accounts.map(acc => (
+          <div key={acc.id} className="card">
+            <h3>{acc.name}</h3>
+            <p>Type: {acc.type}</p>
+            <p>Balance: ${acc.balance}</p>
+          </div>
+        ))}
+      </div>
+
       {/* FORM */}
       <h2>Add Transaction</h2>
       <form onSubmit={handleSubmit} className="form">
@@ -97,6 +127,20 @@ function App() {
           value={form.category}
           onChange={handleChange}
         />
+
+        <select
+          name="account_id"
+          value={form.account_id}
+          onChange={handleChange}
+        >
+          <option value="">Select Account</option>
+          {accounts.map(acc => (
+            <option key={acc.id} value={acc.id}>
+              {acc.name}
+            </option>
+          ))}
+        </select>
+
 
         <input
           name="date"
