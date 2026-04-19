@@ -4,10 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-  "server": "node server.js",
-  "client": "npm start --prefix frontend",
-  "dev": "concurrently \"npm run server\" \"npm run client\""
-},
+    "server": "nodemon server.js",
+    "client": "npm start --prefix ../frontend",
+    "dev": "concurrently \"npm run server\" \"npm run client\""
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
