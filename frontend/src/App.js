@@ -6,6 +6,12 @@ function App() {
   const [transactions, setTransactions] = useState([]);
   const [accounts, setAccounts] = useState([]);
   const [networth, setNetworth] = useState(0);
+  
+  const [accountForm, setAccountForm] = useState({
+  name: "",
+  type: "bank",
+  balance: ""
+});
 
   // form state
   const [form, setForm] = useState({
@@ -40,8 +46,15 @@ function App() {
   }, []);
 
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
+  setForm({ ...form, [e.target.name]: e.target.value });
+};
+
+const handleAccountChange = (e) => {
+  setAccountForm({
+    ...accountForm,
+    [e.target.name]: e.target.value
+  });
+};
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -74,6 +87,29 @@ function App() {
     fetchData(); // refresh UI
   };
 
+  const handleAccountSubmit = async (e) => {
+  e.preventDefault();
+
+  await fetch("http://localhost:5050/accounts", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      ...accountForm,
+      balance: Number(accountForm.balance)
+    })
+  });
+
+  setAccountForm({
+    name: "",
+    type: "bank",
+    balance: ""
+  });
+
+  fetchData(); // refresh accounts
+};
+
   const handleDelete = async (id) => {
     await fetch(`http://localhost:5050/transactions/${id}`, {
       method: "DELETE"
@@ -99,6 +135,36 @@ function App() {
         <h1>${networth}</h1>
       </div>
 
+      {/* Create Account */}
+      <h2>Create Account</h2>
+      <form onSubmit={handleAccountSubmit} className="form">
+        <input
+          name="name"
+          placeholder="Account Name"
+          value={accountForm.name}
+          onChange={handleAccountChange}
+        />
+
+        <select
+          name="type"
+          value={accountForm.type}
+          onChange={handleAccountChange}
+        >
+          <option value="bank">Bank</option>
+          <option value="cash">Cash</option>
+          <option value="credit">Credit</option>
+        </select>
+
+        <input
+          type="number"
+          name="balance"
+          placeholder="Starting Balance"
+          value={accountForm.balance}
+          onChange={handleAccountChange}
+        />
+
+        <button type="submit">Add Account</button>
+      </form>
       {/* Accounts */}
       <h2>Accounts</h2>
       <div className="cards">
