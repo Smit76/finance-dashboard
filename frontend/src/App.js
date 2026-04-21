@@ -4,6 +4,14 @@ import "./App.css";
 function App() {
   const [summary, setSummary] = useState({ income: 0, expenses: 0, balance: 0 });
   const [transactions, setTransactions] = useState([]);
+  const [accounts, setAccounts] = useState([]);
+  const [networth, setNetworth] = useState(0);
+  
+  const [accountForm, setAccountForm] = useState({
+  name: "",
+  type: "bank",
+  balance: ""
+});
 
   // form state
   const [form, setForm] = useState({
@@ -11,7 +19,8 @@ function App() {
     amount: "",
     category: "",
     date: "",
-    description: ""
+    description: "",
+    account_id: ""
   });
 
   const fetchData = () => {
@@ -22,6 +31,14 @@ function App() {
     fetch("http://localhost:5050/transactions")
       .then(res => res.json())
       .then(data => setTransactions(data));
+
+    fetch("http://localhost:5050/accounts")
+      .then(res => res.json())
+      .then(data => setAccounts(data));
+    
+    fetch("http://localhost:5050/networth")
+      .then(res => res.json())
+      .then(data => setNetworth(data.netWorth));
   };
 
   useEffect(() => {
@@ -29,12 +46,23 @@ function App() {
   }, []);
 
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
+  setForm({ ...form, [e.target.name]: e.target.value });
+};
+
+const handleAccountChange = (e) => {
+  setAccountForm({
+    ...accountForm,
+    [e.target.name]: e.target.value
+  });
+};
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (!form.account_id) {
+      alert("Please select an account");
+      return;
+    }
     await fetch("http://localhost:5050/transactions", {
       method: "POST",
       headers: {
@@ -42,7 +70,8 @@ function App() {
       },
       body: JSON.stringify({
         ...form,
-        amount: Number(form.amount)
+        amount: Number(form.amount),
+        account_id: Number(form.account_id)
       })
     });
 
@@ -51,11 +80,35 @@ function App() {
       amount: "",
       category: "",
       date: "",
-      description: ""
+      description: "",
+      account_id: ""
     });
 
     fetchData(); // refresh UI
   };
+
+  const handleAccountSubmit = async (e) => {
+  e.preventDefault();
+
+  await fetch("http://localhost:5050/accounts", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      ...accountForm,
+      balance: Number(accountForm.balance)
+    })
+  });
+
+  setAccountForm({
+    name: "",
+    type: "bank",
+    balance: ""
+  });
+
+  fetchData(); // refresh accounts
+};
 
   const handleDelete = async (id) => {
     await fetch(`http://localhost:5050/transactions/${id}`, {
@@ -76,6 +129,54 @@ function App() {
         <div className="card">Balance: ${summary.balance}</div>
       </div>
 
+      {/* Net Worth */}
+      <div className="card" style={{ marginTop: "20px" }}>
+        <h2>Net Worth</h2>
+        <h1>${networth}</h1>
+      </div>
+
+      {/* Create Account */}
+      <h2>Create Account</h2>
+      <form onSubmit={handleAccountSubmit} className="form">
+        <input
+          name="name"
+          placeholder="Account Name"
+          value={accountForm.name}
+          onChange={handleAccountChange}
+        />
+
+        <select
+          name="type"
+          value={accountForm.type}
+          onChange={handleAccountChange}
+        >
+          <option value="bank">Bank</option>
+          <option value="cash">Cash</option>
+          <option value="credit">Credit</option>
+        </select>
+
+        <input
+          type="number"
+          name="balance"
+          placeholder="Starting Balance"
+          value={accountForm.balance}
+          onChange={handleAccountChange}
+        />
+
+        <button type="submit">Add Account</button>
+      </form>
+      {/* Accounts */}
+      <h2>Accounts</h2>
+      <div className="cards">
+        {accounts.map(acc => (
+          <div key={acc.id} className="card">
+            <h3>{acc.name}</h3>
+            <p>Type: {acc.type}</p>
+            <p>Balance: ${acc.balance}</p>
+          </div>
+        ))}
+      </div>
+
       {/* FORM */}
       <h2>Add Transaction</h2>
       <form onSubmit={handleSubmit} className="form">
@@ -85,6 +186,7 @@ function App() {
         </select>
 
         <input
+          type="number"   
           name="amount"
           placeholder="Amount"
           value={form.amount}
@@ -97,6 +199,20 @@ function App() {
           value={form.category}
           onChange={handleChange}
         />
+
+        <select
+          name="account_id"
+          value={form.account_id}
+          onChange={handleChange}
+        >
+          <option value="">Select Account</option>
+          {accounts.map(acc => (
+            <option key={acc.id} value={acc.id}>
+              {acc.name}
+            </option>
+          ))}
+        </select>
+
 
         <input
           name="date"
