@@ -46,6 +46,10 @@ function App() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (!form.account_id) {
+      alert("Please select an account");
+      return;
+    }
     await fetch("http://localhost:5050/transactions", {
       method: "POST",
       headers: {
@@ -63,7 +67,8 @@ function App() {
       amount: "",
       category: "",
       date: "",
-      description: ""
+      description: "",
+      account_id: ""
     });
 
     fetchData(); // refresh UI
@@ -115,6 +120,7 @@ function App() {
         </select>
 
         <input
+          type="number"   
           name="amount"
           placeholder="Amount"
           value={form.amount}

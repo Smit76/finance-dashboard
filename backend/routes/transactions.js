@@ -4,6 +4,7 @@ const db = require('../db/db');
 
 // CREATE
 router.post('/', (req, res) => {
+   console.log("REQ BODY:", req.body);
     const { type, amount, category, date, description, account_id } = req.body;
   
     db.run(
@@ -13,14 +14,20 @@ router.post('/', (req, res) => {
       function (err) {
         if (err) return res.status(500).json({ error: err.message });
   
-        // 🔥 UPDATE ACCOUNT BALANCE
         const sign = type === "income" ? 1 : -1;
   
         db.run(
           `UPDATE accounts
-           SET balance = balance + ?
-           WHERE id = ?`,
-          [sign * amount, account_id]
+          SET balance = balance + ?
+          WHERE id = ?`,
+          [sign * amount, account_id],
+          function (err) {
+            if (err) {
+              console.error("Balance update error:", err); 
+            } else {
+              console.log("Balance updated:", this.changes); 
+            }
+          }
         );
   
         res.json({ id: this.lastID });
